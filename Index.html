@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulario de Bombonas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .totals {
+      font-weight: bold;
+      background-color: #e6f7ff;
+    }
+    #confirmationTable {
+      margin-top: 50px;
+    }
+    #confirmationTable td:first-child {
+      font-weight: bold;
+      background-color: #f0f0f0;
+    }
+    #mensajeCasa {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Formulario de Recolección de Bombonas</h1>
+
+  <form id="bombonaForm">
+    <label for="nroCasa">NRO Casa</label>
+    <input type="text" id="nroCasa" name="nroCasa" required />
+
+    <label for="bombona10">Bombona 10</label>
+    <input type="number" id="bombona10" name="bombona10" required />
+
+    <label for="bombona18">Bombona 18</label>
+    <input type="number" id="bombona18" name="bombona18" required />
+
+    <label for="bombona27">Bombona 27</label>
+    <input type="number" id="bombona27" name="bombona27" required />
+
+    <label for="bombona43">Bombona 43</label>
+    <input type="number" id="bombona43" name="bombona43" required />
+
+    <button type="submit">Enviar Datos</button>
+  </form>
+
+  <div id="mensajeCasa"></div>
+
+  <!-- Tabla principal -->
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>NRO Casa</th>
+        <th>Bombona 10</th>
+        <th>Bombona 18</th>
+        <th>Bombona 27</th>
+        <th>Bombona 43</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr class="totals">
+        <td>Total Despacho</td>
+        <td id="total10">0</td>
+        <td id="total18">0</td>
+        <td id="total27">0</td>
+        <td id="total43">0</td>
+        <td id="totalGeneral">0</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Segunda tabla: Recibido -->
+  <table id="confirmationTable">
+    <thead>
+      <tr>
+        <th>NRO Casa</th>
+        <th>Bombona 10</th>
+        <th>Bombona 18</th>
+        <th>Bombona 27</th>
+        <th>Bombona 43</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('bombonaForm');
+    const tbody = document.querySelector('#dataTable tbody');
+    const confirmBody = document.querySelector('#confirmationTable tbody');
+    const mensaje = document.getElementById('mensajeCasa');
+    const casasRegistradas = [];
+    const totals = { bombona10: 0, bombona18: 0, bombona27: 0, bombona43: 0 };
+
+    function renderMarks(count) {
+      if (count === 0) return '❌';
+      return '✅'.repeat(count);
+    }
+
+    function ordenarTablaPorCasa(tablaBody) {
+      const rows = Array.from(tablaBody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const casaA = parseInt(a.cells[0].textContent);
+        const casaB = parseInt(b.cells[0].textContent);
+        return casaA - casaB;
+      });
+      tablaBody.innerHTML = '';
+      rows.forEach(row => tablaBody.appendChild(row));
+    }
+
+    document.getElementById('nroCasa').addEventListener('blur', function () {
+      const nroCasa = this.value.trim();
+      if (casasRegistradas.includes(nroCasa)) {
+        mensaje.textContent = `✅ El número de casa ${nroCasa} ya compró.`;
+      } else {
+        mensaje.textContent = '';
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const nroCasa = form.nroCasa.value.trim();
+      const bombona10 = parseInt(form.bombona10.value) || 0;
+      const bombona18 = parseInt(form.bombona18.value) || 0;
+      const bombona27 = parseInt(form.bombona27.value) || 0;
+      const bombona43 = parseInt(form.bombona43.value) || 0;
+      const total = bombona10 + bombona18 + bombona27 + bombona43;
+
+      if (casasRegistradas.includes(nroCasa)) {
+        alert(`⚠️ El número de casa ${nroCasa} ya fue registrado.`);
+        return;
+      }
+
+      casasRegistradas.push(nroCasa);
+      mensaje.textContent = '';
+
+      // Tabla principal
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${nroCasa}</td>
+        <td>${bombona10}</td>
+        <td>${bombona18}</td>
+        <td>${bombona27}</td>
+        <td>${bombona43}</td>
+        <td><strong>${total}</strong></td>
+      `;
+      tbody.appendChild(row);
+      ordenarTablaPorCasa(tbody);
+
+      // Totales
+      totals.bombona10 += bombona10;
+      totals.bombona18 += bombona18;
+      totals.bombona27 += bombona27;
+      totals.bombona43 += bombona43;
+
+      document.getElementById('total10').textContent = totals.bombona10;
+      document.getElementById('total18').textContent = totals.bombona18;
+      document.getElementById('total27').textContent = totals.bombona27;
+      document.getElementById('total43').textContent = totals.bombona43;
+      document.getElementById('totalGeneral').textContent =
+        totals.bombona10 + totals.bombona18 + totals.bombona27 + totals.bombona43;
+
+      // Segunda tabla (solo recibido, sin fila adicional)
+      const recibidoRow = document.createElement('tr');
+      recibidoRow.innerHTML = `
+        <td>${nroCasa}</td>
+        <td>${renderMarks(bombona10)}</td>
+        <td>${renderMarks(bombona18)}</td>
+        <td>${renderMarks(bombona27)}</td>
+        <td>${renderMarks(bombona43)}</td>
+      `;
+      confirmBody.appendChild(recibidoRow);
+      ordenarTablaPorCasa(confirmBody);
+
+      form.reset();
+    });
+  </script>
+</body>
+</html>
